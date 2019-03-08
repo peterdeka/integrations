@@ -44,16 +44,16 @@
     "inline": [
       "sudo yum -y update # make sure we provide the latest packages",
 	  
-      "sudo yum -y install python-pip jq",
+      "sudo yum -y install python27-pip jq",
       "sudo python-pip install awscli",
 
-      "sudo curl -L https://github.com/weaveworks/weave/releases/download/v2.3.0/weave -o /usr/local/bin/weave",
+      "sudo curl -L https://github.com/weaveworks/weave/releases/download/v2.5.1/weave -o /usr/local/bin/weave",
       "sudo chmod +x /usr/local/bin/weave",
       "sudo /usr/local/bin/weave setup",
 
-      "sudo curl -L https://github.com/weaveworks/scope/releases/download/v1.9.0/scope -o /usr/local/bin/scope",
+      "sudo curl -L https://github.com/weaveworks/scope/releases/download/v1.10.2/scope -o /usr/local/bin/scope",
       "sudo chmod +x /usr/local/bin/scope",
-      "docker pull weaveworks/scope:1.9.0",
+      "docker pull weaveworks/scope:1.10.2",
 
 
       "sudo mv /home/ec2-user/weave.conf /etc/init/weave.conf",
