@@ -1,0 +1,42 @@
+set -eu
+
+LOGGER_TAG=""
+
+is_container_running() {
+    [ "$(docker inspect -f '{{.State.Running}}' $1 2> /dev/null)" = true ]
+}
+
+succeed_or_die() {
+    if ! OUT=$("$@" 2>&1); then
+	echo "error: '$@' failed: $OUT" | logger -p local0.error -t $LOGGER_TAG
+	exit 1
+    fi
+    echo $OUT
+}
+
+run_weave() {
+  # Ideally we would use a pre-stop Upstart stanza for terminating Weave, but we can't
+  # because it would cause ECS to stop in an unorderly manner:
+  #
+  # Stop Weave -> Weave pre-stop stanza -> Weave stopping event -> ECS pre-stop ...
+  #
+  # The Weave pre-stop stanza would kick in before stopping ECS, which would result in
+  # the ECS Upstart job supervisor dying early (it talks to the weave proxy,
+  # which is gone), not allowing the ECS pre-stop stanza to kick in and stop the
+  # ecs-agent
+  trap 'succeed_or_die weave stop; exit 0' TERM
+  while true; do
+      # verify that weave is not running
+      while is_container_running weave; do sleep 2; done
+      # launch weave
+      PEERS=$(succeed_or_die /etc/weave/peers.sh)
+      succeed_or_die weave launch --plugin=false --hostname-from-label --no-restart 'com.amazonaws.ecs.container-name' $PEERS
+  done
+}
+
+case $1 in
+    weave)
+	LOGGER_TAG="weave_runner"
+        run_weave
+        ;;
+esac

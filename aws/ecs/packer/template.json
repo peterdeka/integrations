@@ -2,7 +2,7 @@
   "variables": {
     "aws_access_key": "",
     "aws_secret_key": "",
-    "aws_region": "",
+    "aws_region": "eu-west-1",
     "source_ami": "",
     "ami_groups": ""
   },
@@ -10,27 +10,23 @@
     "type": "amazon-ebs",
     "region": "{{user `aws_region`}}",
     "source_ami": "{{user `source_ami`}}",
-    "instance_type": "t2.micro",
-    "ami_name": "Weaveworks ECS Image ({{isotime \"2006-01-02\"}})",
+    "instance_type": "t3.micro",
+    "ami_name": "ecs amz linux2 weave 2.5.1 ({{isotime \"2006-01-02\"}})",
     "ami_groups": "{{user `ami_groups`}}",
     "communicator": "ssh",
-    "ssh_username": "ec2-user",      
-    "ssh_file_transfer_method": "sftp",  
+    "ssh_username": "ec2-user",
+    "ssh_file_transfer_method": "sftp",
     "ssh_pty": true
   }],
 
   "provisioners": [{
     "type": "file",
-    "source": "to-upload/ecs.override",
-    "destination": "/home/ec2-user/ecs.override"
+    "source": "to-upload/ecs.override.conf",
+    "destination": "/home/ec2-user/ecs.override.conf"
   }, {
     "type": "file",
-    "source": "to-upload/weave.conf",
-    "destination": "/home/ec2-user/weave.conf"
-  }, {
-    "type": "file",
-    "source": "to-upload/scope.conf",
-    "destination": "/home/ec2-user/scope.conf"
+    "source": "to-upload/weave.service",
+    "destination": "/home/ec2-user/weave.service"
   }, {
     "type": "file",
     "source": "to-upload/peers.sh",
@@ -43,9 +39,9 @@
     "type": "shell",
     "inline": [
       "sudo yum -y update # make sure we provide the latest packages",
-	  
-      "sudo yum -y install python27-pip jq",
-      "sudo python-pip install awscli",
+
+      "sudo yum -y install python3-pip jq",
+      "sudo pip3 install awscli",
 
       "sudo curl -L https://github.com/weaveworks/weave/releases/download/v2.5.1/weave -o /usr/local/bin/weave",
       "sudo chmod +x /usr/local/bin/weave",
@@ -56,9 +52,12 @@
       "docker pull weaveworks/scope:1.10.2",
 
 
-      "sudo mv /home/ec2-user/weave.conf /etc/init/weave.conf",
-      "sudo mv /home/ec2-user/scope.conf /etc/init/scope.conf",
-      "sudo mv /home/ec2-user/ecs.override /etc/init/ecs.override",
+      "sudo mv /home/ec2-user/weave.service /etc/systemd/system/weave.service",
+      "sudo mkdir -p /etc/systemd/system/ecs.service.d",
+      "sudo mv /home/ec2-user/ecs.override.conf /etc/systemd/system/ecs.service.d/override.conf",
+
+      "sudo systemctl daemon-reload",
+      "sudo systemctl enable weave.service",
 
       "sudo mkdir /etc/weave",
       "sudo mv /home/ec2-user/peers.sh /etc/weave/peers.sh",
@@ -67,7 +66,7 @@
       "sudo chmod +x /etc/weave/run.sh",
 
       "# Remove all ECS execution traces added while running packer",
-      "sudo stop ecs || true",
+      "sudo systemctl stop ecs.service || true",
       "sudo docker rm ecs-agent 2> /dev/null || true",
       "sudo rm -rf /var/log/ecs/* /var/lib/ecs/data/*",
       "sudo rm /root/.ssh/authorized_keys",

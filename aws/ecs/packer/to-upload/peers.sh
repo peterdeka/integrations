@@ -35,4 +35,3 @@ fi
 
 peer_ips=$($aws ec2 describe-instances --instance-ids $peer_instances --query 'Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddress' --output text)
 echo $peer_ips
-
