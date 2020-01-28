@@ -10,8 +10,8 @@
     "type": "amazon-ebs",
     "region": "{{user `aws_region`}}",
     "source_ami": "{{user `source_ami`}}",
-    "instance_type": "t3.micro",
-    "ami_name": "ecs amz linux2 weave 2.5.1 ({{isotime \"2006-01-02\"}})",
+    "instance_type": "t3.small",
+    "ami_name": "ECS weave 2.6.0 small({{isotime \"2006-01-02\"}})",
     "ami_groups": "{{user `ami_groups`}}",
     "communicator": "ssh",
     "ssh_username": "ec2-user",
@@ -43,13 +43,13 @@
       "sudo yum -y install python3-pip jq",
       "sudo pip3 install awscli",
 
-      "sudo curl -L https://github.com/weaveworks/weave/releases/download/v2.5.1/weave -o /usr/local/bin/weave",
+      "sudo curl -L https://github.com/weaveworks/weave/releases/download/v2.6.0/weave -o /usr/local/bin/weave",
       "sudo chmod +x /usr/local/bin/weave",
       "sudo /usr/local/bin/weave setup",
 
-      "sudo curl -L https://github.com/weaveworks/scope/releases/download/v1.10.2/scope -o /usr/local/bin/scope",
+      "sudo curl -L https://github.com/weaveworks/scope/releases/download/v1.12.0/scope -o /usr/local/bin/scope",
       "sudo chmod +x /usr/local/bin/scope",
-      "docker pull weaveworks/scope:1.10.2",
+      "docker pull weaveworks/scope:1.12.0",
 
 
       "sudo mv /home/ec2-user/weave.service /etc/systemd/system/weave.service",
