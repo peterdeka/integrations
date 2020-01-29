@@ -16,7 +16,8 @@ run_weave() {
   # launch weave
   PEERS=$(succeed_or_die /etc/weave/peers.sh)
   IPALLOC=""
-  if [[ -n "$IPALLOC_RANGE" ]]; then
+  if [ -v IPALLOC_RANGE ]
+  then
     IPALLOC="--ipalloc-range $IPALLOC_RANGE"
   fi
   succeed_or_die weave launch --plugin=false --no-restart --hostname-from-label 'com.amazonaws.ecs.container-name' $IPALLOC $PEERS
